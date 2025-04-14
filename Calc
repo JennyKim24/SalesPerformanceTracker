@@ -1,0 +1,354 @@
+/** This program is used to compute the annual sales revenue to-date in-order to
+ * determine the status of the company¡¯s sales revenue and whether a year-end
+ * bonus is in store for the employees. Sales revenue is captured by month
+ * within a quarter; therefore, the user can enter as many quarters as needed
+ * as long as the quarters are not less than 1 or greater than 4. If sales
+ * revenue is on target by 50% or more for a sales rep, an encouraging message
+ * is sent; otherwise, a warning is sent. If sales revenue to date for the
+ * company is greater than or equal to 100% of projected annual sales, then
+ * employees qualify for a 2-5% year-end bonus; otherwise, no year-end bonus
+ * can be expected. */
+
+import java.util.Scanner; //Scanner import to take input
+import java.util.Calendar; // Calendar import to take current year
+/**
+ * By Jenny Kim
+ */
+
+public class KimTurner001PA2 {
+
+    /**
+     * Class variables
+     */
+    private static Scanner input = new Scanner(System.in); //scanner assignment
+    private static String monthNo; // Month number as string
+    private static String salesRep; // Sales rep as string
+    private static String quarter; // Quarter as string
+    private static double quaterlySales; // Quarterly Sales as a double
+    private static int qtrCounter; // Quarter counter as an integer
+    private static int noOfQtrs; // Number of quarters as an integer
+
+    /**
+     * Main method
+     */
+    public static void main(String[] args) {
+        /**
+         * Main method variables
+         */
+        double salesRevenue = 0.00; // sales revenue
+        double quarterlySales = 0.00; // quarterly sales
+        double annualSales = 0.00; // annual sales
+        double projectedSales = 0.00; // projected sales
+        double percOfTargetCo = 0.0; // percentage of target sales for the company
+        double percOfTargetRep = 0.0; // percentage of target sales for the rep
+
+        int qtrChoice = 0; // quarter choice
+        int monthCounter = 0; // month counter
+        int noOfMonths = 3; // number of months
+        int noSalesReps = 0; // number of sales reps
+        int salesRepCtr = 0; // sales rep counter'
+
+        System.out.printf("What is the projected annual sales for Tandem?: ");  
+
+        while (!input.hasNextDouble()) { // Validation loop checks if input is a double.
+
+            input.next();
+            System.out.printf("NOT a valid floating-point! Please re-enter the projected sales for Tandem: ");
+        }
+
+        annualSales = input.nextDouble(); // Takes user input.
+
+        System.out.printf("How many sales reps works for Tandem?: ");
+
+        while (!input.hasNextInt()) // Validation loop checks if input is an integer
+        {
+
+            input.next();
+            System.out.printf("NOT a valid integer! Please re-enter the number of sales reps for Tandem: ");
+        }
+
+        noSalesReps = input.nextInt();
+        input.nextLine();
+        //always clean buffer after input.nextInt
+
+        do // start of do while loop
+        {
+            qtrCounter = 1; // intializes qtrCounter
+            quaterlySales = 0; // intializes quarterlySales
+            salesRepCtr++; // post-increments salesRepCtr
+            promptSalesRep(salesRepCtr); // method call of promptSalesRep
+            promptNoQtrs(); // method call of promptNoQtrs
+
+            while (qtrCounter <= noOfQtrs) // nested while loop
+            {
+                monthCounter = 1; // intializes monthCounter
+                qtrChoice = chooseQtr(); // assigns output of method to variable and calls it
+
+                while (monthCounter <= noOfMonths) // nested nested while loop
+                {
+                    determineMonthNo(monthCounter); // method call for determineMonthNo
+                    salesRevenue = promptSalesRevenue(); // assigns output of method to variable and calls it
+                    quaterlySales += salesRevenue; // Compound assignment
+                    ++monthCounter;  //pre-increment 
+
+                }
+
+                annualSales += quaterlySales;  // Compound assignment
+                ++qtrCounter; // pre-increment
+
+            }
+
+            printSalesRepRevReport(); //method call for printSalesRepRevReport
+            percOfTargetRep = quarterlySales / (projectedSales / noSalesReps) * 100;    // percOfTargetRep calculations
+
+            if (noOfQtrs < 4) {
+                System.out.printf(percOfTargetRep >= 50 ? String.format("%nKeep up the GOOD work, %s." // ternary to print either bonus of lagging sales
+                        + "There is a possible year-end bonus!%n", salesRep.substring(0, salesRep.indexOf(' ')).substring(0, 1).toUpperCase()        //final outputs 
+                                                                          + salesRep.substring(1, salesRep.indexOf(' ')))
+                                    : "So far sales are lagging behind projections.");
+
+            }
+
+        } while (salesRepCtr < noSalesReps);       // end of the do while loop which finishes the intake of each sales rep
+
+        percOfTargetCo = (annualSales / projectedSales) * 100; // percOfTargetCo calculations
+        System.out.printf("%nCORPORATE SALES PERFORMANCE");
+        System.out.printf(percOfTargetCo >= 100 ? "%nIt's been a GOOD year so far. There could be a year-end bonus of about 2-5%%"
+                + " if we keep on top of our sales goals. Thank you all and please continue your excellent"
+                + " effort!" : "Sales are lagging projections. A year-end bonus may not be possible.");
+
+    }
+
+    /**
+     * method to prompt for sales rep name and take input form user
+     */
+    public static void promptSalesRep(int salesRepCtr) {
+        int index = 0; // initialize index variable
+        int spaceCount = 0; // initialize spaceCount variable
+        System.out.printf("%nEnter the name of %s sales rep: ", salesRepCtr == 1 ? "a" : "the next");
+        salesRep = input.nextLine(); // take user input
+        for (char blank : salesRep.toCharArray()) {
+            if (blank == ' ') {
+                spaceCount++; // pre-increment spaceCount
+
+            }
+        }
+        /**
+         * Stringbuilder to capitalize the first letter of the first and last
+         * name
+         */
+        StringBuilder rep = new StringBuilder(salesRep);
+
+        rep.setCharAt(0, salesRep.toUpperCase().charAt(0));
+        index = salesRep.indexOf(' ');
+
+        for (int i = 1; i <= spaceCount; i++) {
+
+            rep.setCharAt(++index, salesRep.toUpperCase().charAt(index));
+            index = salesRep.indexOf(' ', index);
+        }  //END for i from 1 thru spaceCount
+
+        salesRep = rep.toString(); // assigns new capitalized string to salesRep
+    }
+
+    /**
+     * method to prompts number of quarters method and validates for an integer
+     */
+    public static void promptNoQtrs() {
+        System.out.printf("%nEnter the number of quarters worked (no less than 1 or greater than 4):  ");
+        while (!input.hasNextInt()) { //validation loop to check if input is an integer
+            input.next(); // clears invalid input
+            System.out.printf("%nNOT a valid integer! Please re-enter the number of quarters worked (1-4):  ");
+        }
+
+        noOfQtrs = input.nextInt(); // takes input from user and assigns to noOfQtrs
+        
+
+    }
+
+    /**
+     * Prompts for the choice of quarters in which sales were earned or the next
+     * quarter in which sales were earned
+     */
+
+    public static int chooseQtr() {
+        int qtrChosen = 0; // initializes qtrChosen for method
+        System.out.printf("%n1. First Quarter %n2. Second Quarter %n3. Third Quarter %n4. Fourth Quarter %n%nChoose the "
+                + "%squarter in which sales were earned:  ", qtrCounter > 1 ? "next" : "");
+        while (!input.hasNextInt()) // validation loop to check if input is integer
+        {
+            input.next(); // clears the invalid input
+            System.out.printf("%n%nNOT a valid integer! Please re-enter the quarter.");
+        }
+
+        qtrChosen = input.nextInt(); // takes the user input.
+        input.nextLine();
+
+        quarter = (qtrChosen == 1) ? "First Quarter" : (qtrChosen == 2) ? "Second Quarter" : (qtrChosen == 3)
+                ? "Third Quarter" : "Fourth Quarter";
+        return qtrChosen; //returns user input for quarter chosen
+
+    }
+
+    /**
+     * Determines the month number with a switch
+     */
+    public static void determineMonthNo(int monthCounter) {
+        switch (monthCounter) {
+            case 1:
+                monthNo = "1st";
+                break;
+            case 2:
+                monthNo = "2nd";
+                break;
+            case 3:
+                monthNo = "3rd";
+                break;
+        }
+    }
+
+    /**
+     * prompts user for sales revenue
+     */
+    public static double promptSalesRevenue() {
+        double salesRev = 0.00; // initialize salesRev for method
+
+        System.out.printf("Enter the sales revenue for the %s month of the %s:  ", monthNo, quarter);
+        while (!input.hasNextDouble()) { //validation loop to check if input is a double
+            input.next(); // clears invalid input
+            System.out.printf("%n%nNOT a valid floating-point! Please re-enter the sales revenue for the %s month of the %s:  ", monthNo, quarter);        
+        }
+        salesRev = input.nextDouble(); // takes input from user
+        input.nextLine();  //buffer cleaner
+        
+        return salesRev; // returns user input
+
+    }
+
+    /**
+     * prints the sales rep revenue report
+     */
+    public static void printSalesRepRevReport() {
+        Calendar dateTime = Calendar.getInstance(); // Calendar dateTime intialization
+
+        System.out.printf("TANDEM ENTERPRISES %nSALES REVENUE FOR %d "
+                + "QUARTER(S) OF %tY %nSALES REP: %s %nTotal Year-to-Date:  $%,19.2f%n",
+                 noOfQtrs, dateTime, salesRep, quaterlySales);                                     
+    }
+}
+/**
+ * What is the projected annual sales for Tandem?:  [DrJava Input Box]
+NOT a valid floating-point! Please re-enter the projected sales for Tandem:  [DrJava Input Box]
+How many sales reps works for Tandem?:  [DrJava Input Box]
+NOT a valid integer! Please re-enter the number of sales reps for Tandem:  [DrJava Input Box]
+ 
+Enter the name of a sales rep:  [DrJava Input Box]
+ 
+Enter the number of quarters worked (no less than 1 or greater than 4):   [DrJava Input Box]
+ 
+NOT a valid integer! Please re-enter the number of quarters worked (1-4):   [DrJava Input Box]
+ 
+1. First Quarter  
+2. Second Quarter  
+3. Third Quarter  
+4. Fourth Quarter  
+ 
+Choose the quarter in which sales were earned:   [DrJava Input Box]
+ 
+ 
+NOT a valid integer! Please re-enter the quarter. [DrJava Input Box]
+Enter the sales revenue for the 1st month of the Second Quarter:   [DrJava Input Box]
+ 
+ 
+NOT a valid floating-point! Please re-enter the sales revenue for the 1st month of the Second Quarter:   [DrJava Input Box]
+Enter the sales revenue for the 2nd month of the Second Quarter:   [DrJava Input Box]
+Enter the sales revenue for the 3rd month of the Second Quarter:   [DrJava Input Box]
+TANDEM ENTERPRISES  
+SALES REVENUE FOR 1 QUARTER(S) OF 2022  
+SALES REP: Julian Caeser  
+Total Year-to-Date:  $         250,000.00 
+So far sales are lagging behind projections. 
+Enter the name of the next sales rep:  [DrJava Input Box]
+ 
+Enter the number of quarters worked (no less than 1 or greater than 4):   [DrJava Input Box]
+ 
+1. First Quarter  
+2. Second Quarter  
+3. Third Quarter  
+4. Fourth Quarter  
+ 
+Choose the quarter in which sales were earned:   [DrJava Input Box]
+Enter the sales revenue for the 1st month of the First Quarter:   [DrJava Input Box]
+Enter the sales revenue for the 2nd month of the First Quarter:   [DrJava Input Box]
+Enter the sales revenue for the 3rd month of the First Quarter:   [DrJava Input Box]
+ 
+1. First Quarter  
+2. Second Quarter  
+3. Third Quarter  
+4. Fourth Quarter  
+ 
+Choose the nextquarter in which sales were earned:   [DrJava Input Box]
+Enter the sales revenue for the 1st month of the Second Quarter:   [DrJava Input Box]
+Enter the sales revenue for the 2nd month of the Second Quarter:   [DrJava Input Box]
+Enter the sales revenue for the 3rd month of the Second Quarter:   [DrJava Input Box]
+TANDEM ENTERPRISES  
+SALES REVENUE FOR 2 QUARTER(S) OF 2022  
+SALES REP: Monique La Femme  
+Total Year-to-Date:  $          32,000.00 
+So far sales are lagging behind projections. 
+CORPORATE SALES PERFORMANCE 
+It's been a GOOD year so far. There could be a year-end bonus of about 2-5% if we keep on top of our sales goals. Thank you all and please continue your excellent effort!>
+*/
+/**
+ * What is the projected annual sales for Tandem?:  [DrJava Input Box]
+How many sales reps works for Tandem?:  [DrJava Input Box]
+ 
+Enter the name of a sales rep:  [DrJava Input Box]
+ 
+Enter the number of quarters worked (no less than 1 or greater than 4):   [DrJava Input Box]
+ 
+1. First Quarter  
+2. Second Quarter  
+3. Third Quarter  
+4. Fourth Quarter  
+ 
+Choose the quarter in which sales were earned:   [DrJava Input Box]
+Enter the sales revenue for the 1st month of the Second Quarter:   [DrJava Input Box]
+Enter the sales revenue for the 2nd month of the Second Quarter:   [DrJava Input Box]
+Enter the sales revenue for the 3rd month of the Second Quarter:   [DrJava Input Box]
+TANDEM ENTERPRISES  
+SALES REVENUE FOR 1 QUARTER(S) OF 2022  
+SALES REP: Julian Caeser  
+Total Year-to-Date:  $         250,000.00 
+So far sales are lagging behind projections. 
+Enter the name of the next sales rep:  [DrJava Input Box]
+ 
+Enter the number of quarters worked (no less than 1 or greater than 4):   [DrJava Input Box]
+ 
+1. First Quarter  
+2. Second Quarter  
+3. Third Quarter  
+4. Fourth Quarter  
+ 
+Choose the quarter in which sales were earned:   [DrJava Input Box]
+Enter the sales revenue for the 1st month of the First Quarter:   [DrJava Input Box]
+Enter the sales revenue for the 2nd month of the First Quarter:   [DrJava Input Box]
+Enter the sales revenue for the 3rd month of the First Quarter:   [DrJava Input Box]
+ 
+1. First Quarter  
+2. Second Quarter  
+3. Third Quarter  
+4. Fourth Quarter  
+ 
+Choose the nextquarter in which sales were earned:   [DrJava Input Box]
+Enter the sales revenue for the 1st month of the Second Quarter:   [DrJava Input Box]
+Enter the sales revenue for the 2nd month of the Second Quarter:   [DrJava Input Box]
+Enter the sales revenue for the 3rd month of the Second Quarter:   [DrJava Input Box]
+TANDEM ENTERPRISES  
+SALES REVENUE FOR 2 QUARTER(S) OF 2022  
+SALES REP: Monique La Femme  
+Total Year-to-Date:  $         190,000.00 
+So far sales are lagging behind projections. 
+CORPORATE SALES PERFORMANCE 
+It's been a GOOD year so far. There could be a year-end bonus of about 2-5% if we keep on top of our sales goals. Thank you all and please continue your excellent effort!> 
+*/
